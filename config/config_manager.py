@@ -2,6 +2,22 @@ import json
 from pathlib import Path
 import logging
 from typing import Optional, Dict
+from cryptography.fernet import Fernet
+
+class ConfigManager:
+    def __init__(self):
+        self.key = self._get_encryption_key()
+        
+    def _get_encryption_key(self):
+        key_path = Path("config/key.key")
+        if not key_path.exists():
+            key = Fernet.generate_key()
+            key_path.write_bytes(key)
+        return key_path.read_bytes()
+
+    def save_config(self, config: Dict) -> bool:
+        cipher_suite = Fernet(self.key)
+        encrypted_data = cipher_suite.encrypt(json.dumps(config).encode())
 
 class ConfigManager:
     def __init__(self, config_path: Path = Path("config/settings.json")):
